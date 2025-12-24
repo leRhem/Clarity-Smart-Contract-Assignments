@@ -131,8 +131,6 @@ clarity-smart-contract-assignments/
 - **Example:**
   ```clarity
   (contract-call? .contract-name function-name param1 param2)
-  ```
-
 [Document all public functions]
 
 ## Known Limitations
