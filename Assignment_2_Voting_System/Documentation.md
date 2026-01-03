@@ -1,4 +1,4 @@
-# Assignment [Number]: [Contract Name]
+## Assignment 2: Simple Voting System (Medium)
 
 ## Student Information
 - Name: [Your Name]

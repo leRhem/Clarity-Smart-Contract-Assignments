@@ -8,7 +8,7 @@
 ;; TODO: Define map for proposal details
 ;; Should store: title, description, yes-votes, no-votes, end-height, creator
 (define-map proposals 
-    uint 
+    { id: uint }
     {
         title: (string-utf8 100),
         description: (string-utf8 500),
@@ -20,7 +20,6 @@
 )
 
 ;; TODO: Define map to track if a user has voted on a proposal
-;; Key should be composite: {proposal-id: uint, voter: principal}
 (define-map votes {proposal-id: uint, voter: principal} bool)
 
 ;; Error Constants
@@ -32,10 +31,6 @@
 ;; Public Functions
 
 ;; Create a new proposal
-;; @param title: proposal title
-;; @param description: proposal description  
-;; @param duration: voting duration in blocks
-;; @returns (ok proposal-id) on success
 (define-public (create-proposal 
     (title (string-utf8 100))
     (description (string-utf8 500))
