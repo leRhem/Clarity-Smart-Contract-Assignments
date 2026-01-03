@@ -3,12 +3,14 @@
 
 ;; Data Variables
 (define-data-var proposal-count uint u0)
+;; Storage
+(define-data-var counter-name uint u0)
 
 ;; Data Maps
 ;; TODO: Define map for proposal details
 ;; Should store: title, description, yes-votes, no-votes, end-height, creator
 (define-map proposals 
-    { id: uint }
+    uint
     {
         title: (string-utf8 100),
         description: (string-utf8 500),
@@ -38,11 +40,22 @@
     (let
         (
             (proposal-id (+ (var-get proposal-count) u1))
-            ;; TODO: Calculate end-height (current block-height + duration)
-            (end-height (+ block-height duration))
+            ;; Calculated end-height (current block-height + duration)
+            (end-height (+ stacks-block-height duration))
         )
-        ;; TODO: Store the proposal data in the proposals map
-        ;; TODO: Increment the proposal-count
+        ;; Stored the proposal data in the proposals map
+        (map-set proposals
+            proposal-id
+            {
+                title: title,
+                description: description,
+                yes-votes: u0,
+                no-votes: u0,
+                end-height: end-height,
+                creator: tx-sender          
+            }
+        )
+        
         (var-set proposal-count proposal-id)
         (ok proposal-id)
     )
@@ -55,13 +68,33 @@
 (define-public (vote (proposal-id uint) (vote-for bool))
     (let
         (
-            ;; TODO: Get the proposal data
+            ;; Get the proposal data
             (proposal (unwrap! (map-get? proposals proposal-id) ERR-NOT-FOUND))
+            (end-height (get end-height proposal))
+            (current-yes (get yes-votes proposal))
+            (current-no (get no-votes proposal))
         )
-        ;; TODO: Check that voting is still open (block-height <= end-height)
-        ;; TODO: Check that user hasn't already voted
-        ;; TODO: Record the vote
-        ;; TODO: Update vote counts in the proposal
+
+        ;; CHECK 1: If the voting is still open
+        (asserts! (< stacks-block-height end-height) ERR-VOTING-CLOSED)
+
+        ;; CHECK 2: Has this person already voted?
+        (asserts! (is-none (has-voted proposal-id tx-sender)) ERR-ALREADY-VOTED)
+
+        ;; Record their vote, if they haven't voted yet
+        (map-set votes {proposal-id: proposal-id, voter: tx-sender} true)
+        
+        ;; Updated the vote counts in the proposal
+        (map-set proposals 
+            proposal-id
+            (merge proposal 
+                {
+                    yes-votes: (if vote-for (+ current-yes u1) current-yes), 
+                    no-votes: (if vote-for current-no (+ current-no u1))
+                }
+            )
+        )
+        
         (ok true)
     )
 )
@@ -72,8 +105,7 @@
 ;; @param proposal-id: the proposal to look up
 ;; @returns proposal data or none
 (define-read-only (get-proposal (proposal-id uint))
-    ;; TODO: Return the proposal data
-    none
+    (map-get? proposals proposal-id)
 )
 
 ;; Check if a user has voted on a proposal
@@ -81,14 +113,18 @@
 ;; @param user: the user to check
 ;; @returns true if voted, false otherwise
 (define-read-only (has-voted (proposal-id uint) (user principal))
-    ;; TODO: Check the votes map
-    false
+    (map-get? votes {proposal-id: proposal-id, voter: user})
 )
 
 ;; Get vote totals for a proposal
 ;; @param proposal-id: the proposal to check
 ;; @returns {yes-votes: uint, no-votes: uint}
 (define-read-only (get-vote-totals (proposal-id uint))
-    ;; TODO: Return yes and no vote counts
-    {yes-votes: u0, no-votes: u0}
+    (match (map-get? proposals proposal-id)
+        proposal {
+            yes-votes: (get yes-votes proposal),
+            no-votes: (get no-votes proposal)
+        }
+        {yes-votes: u0, no-votes: u0}
+    )
 )
