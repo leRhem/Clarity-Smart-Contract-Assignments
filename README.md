@@ -8,5 +8,5 @@
    - [x] Assignment 1: Hello World Registry
    - [x] Assignment 2: Voting System
    - [x] Assignment 3: Timelock Wallet
-   - [ ] Assignment 4: Escrow Contract
+   - [x] Assignment 4: Escrow Contract
    - [ ] Assignment 5: NFT Marketplace

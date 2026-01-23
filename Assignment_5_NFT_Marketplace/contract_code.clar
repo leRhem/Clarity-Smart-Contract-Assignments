@@ -21,7 +21,6 @@
 (define-constant STATUS-CANCELLED u3)
 
 ;; Data Maps
-;; TODO: Define map for listing details
 (define-map listings
     uint
     {
